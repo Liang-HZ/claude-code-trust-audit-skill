@@ -7,7 +7,15 @@ description: Use when a user wants Claude Code account-risk, ban-risk, or accoun
 
 ## Overview
 
-Run the public `network-fingerprint-audit` collector, read its JSON `agent_brief`, then inspect Claude Code local configuration only with user consent. Treat non-official Claude Code traces as high risk for this target audience.
+Run the public `network-fingerprint-audit` collector, read its JSON `agent_brief`, then inspect Claude Code local configuration only after explicit user consent. Treat non-official Claude Code traces as high risk for this target audience.
+
+## Consent Gate
+
+Before listing, reading, grepping, or summarizing any `~/.claude`, project `.claude`, session transcript, or Claude-related environment variable value, ask the user and wait for confirmation. A user request that explicitly says to inspect local Claude Code config, `.claude`, or session files counts as consent for that scope. A general request like "run an audit" does not.
+
+Use this prompt when consent is missing:
+
+`Do you want me to inspect local Claude Code settings and session metadata under ~/.claude and project .claude paths? I will redact secrets and will not delete anything.`
 
 ## Workflow
 
@@ -18,7 +26,7 @@ Run the public `network-fingerprint-audit` collector, read its JSON `agent_brief
 2. Open the JSON path printed at `audit.json_path`.
 3. Read `agent_brief` first. Use raw fields only to verify evidence.
 4. Read `references/claude-code-local-risk.md`.
-5. Ask or confirm permission before reading `.claude` files or session transcripts.
+5. Pass the Consent Gate before reading `.claude` files, session transcripts, or Claude-related environment variable values.
 6. Inspect Claude Code settings/session traces listed in `agent_brief.manual_agent_checks`.
 7. Produce a concise report: verdict, high-risk sources, evidence paths/files, cleanup advice, and unverified checks.
 

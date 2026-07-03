@@ -1,6 +1,6 @@
 # Claude Code Local Risk Checks
 
-Use this reference after the network audit JSON is available.
+Use this reference after the network audit JSON is available and the user has consented to local Claude Code config/session inspection.
 
 ## High-Risk Traces
 
@@ -14,7 +14,15 @@ Treat any of these as high risk for Chinese-user Claude Code account-trust diagn
 
 Official organization/cloud-provider setups can exist, but for this skill's target audience, unknown or unverifiable traces stay high risk until the user proves they are authorized.
 
-## Paths To Inspect With Consent
+## Consent Gate
+
+Before listing, reading, grepping, or summarizing any local Claude Code settings, session transcript, or Claude-related environment variable value, ask the user and wait for confirmation unless the current user request explicitly asked for that exact inspection.
+
+Prompt:
+
+`Do you want me to inspect local Claude Code settings and session metadata under ~/.claude and project .claude paths? I will redact secrets and will not delete anything.`
+
+## Paths To Inspect After Consent
 
 - `~/.claude/settings.json`
 - Current project `.claude/settings.json`
