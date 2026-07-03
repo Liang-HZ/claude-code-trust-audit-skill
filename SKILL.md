@@ -9,6 +9,12 @@ description: Use when a user wants Claude Code account-risk, ban-risk, or accoun
 
 Run the public `network-fingerprint-audit` collector, read its JSON `agent_brief`, then inspect Claude Code local configuration only after explicit user consent. Treat non-official Claude Code traces as high risk for this target audience.
 
+## Platform Support
+
+- macOS is the primary supported and tested path.
+- Windows support is in development. The collector has Windows code paths, but this skill should describe Windows results as experimental until they are verified on the user's machine.
+- Linux is not currently supported by the collector.
+
 ## Consent Gate
 
 Before listing, reading, grepping, or summarizing any `~/.claude`, project `.claude`, session transcript, or Claude-related environment variable value, ask the user and wait for confirmation. A user request that explicitly says to inspect local Claude Code config, `.claude`, or session files counts as consent for that scope. A general request like "run an audit" does not.
