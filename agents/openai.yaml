@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Code Trust Audit"
+  short_description: "Diagnose Claude Code account-risk signals"
+  default_prompt: "Use $claude-code-trust-audit to run a local account-trust environment audit and explain the risk factors."
