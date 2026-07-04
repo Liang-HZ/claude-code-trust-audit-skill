@@ -7,7 +7,16 @@ description: Use when a user wants Claude Code account-risk, ban-risk, or accoun
 
 ## Overview
 
-Run the public `network-fingerprint-audit` collector, read its JSON `agent_brief`, then inspect Claude Code local configuration only after explicit user consent. Treat non-official Claude Code traces as high risk for this target audience.
+This skill uses a **two-step** model:
+1. **User runs** the `network-fingerprint-audit` collector in their own terminal (full system permissions required — the collector calls `ps`, `nslookup`, route table queries, etc. that are blocked inside the Agent sandbox).
+2. **Agent interprets** the collector's JSON output, inspects Claude Code local configuration (after consent), and produces a readable audit report.
+
+Treat non-official Claude Code traces as high risk for this target audience.
+
+## Prerequisites
+
+- The `network-fingerprint-audit` collector repo is downloaded automatically by `scripts/run_network_audit.py`. No manual setup needed.
+- The collector needs full system permission to run (`ps`, `nslookup`, route tables, etc.) — **it cannot run inside the Agent sandbox**. The Agent will download the repo, then give the user a single command to copy-paste into their own Terminal.
 
 ## Platform Support
 
@@ -25,16 +34,34 @@ Use this prompt when consent is missing:
 
 ## Workflow
 
-1. Run `scripts/run_network_audit.py`.
-   - Default command: `python3 scripts/run_network_audit.py`
-   - Add `--default-browser-tracking-probe` only when the user accepts opening the default browser.
-   - Add `--skip-network` only when the user explicitly wants no external lookups.
-2. Open the JSON path printed at `audit.json_path`.
-3. Read `agent_brief` first. Use raw fields only to verify evidence.
-4. Read `references/claude-code-local-risk.md`.
-5. Pass the Consent Gate before reading `.claude` files, session transcripts, or Claude-related environment variable values.
-6. Inspect Claude Code settings/session traces listed in `agent_brief.manual_agent_checks`.
-7. Produce a concise report: verdict, high-risk sources, evidence paths/files, cleanup advice, and unverified checks.
+### Step 1 — 准备采集器，让用户去新终端执行
+
+运行 `scripts/run_network_audit.py`。脚本会自动下载采集器仓库，然后打印一段**中文提示**，告诉用户：
+
+1. **打开一个新的终端窗口**（不要在 Claude Code 当前窗口执行）
+2. 粘贴脚本给出的那一行命令，按回车
+3. 采集大约需要 1 分钟
+
+脚本执行完毕后，问用户是否已经跑完了，让用户把输出的 JSON 路径告诉 Agent（或 Agent 自行搜索最近的 audit-*.json）。
+
+可选参数（仅当用户同意后添加到命令中）：
+- `--default-browser-tracking-probe` — 打开默认浏览器做 WebRTC 探测（需用户同意）
+- `--skip-network` — 跳过所有外部网络查询，只收集本地数据
+
+### Step 2 — 读取采集器输出
+
+1. Read the JSON file at the path printed by the script.
+2. Read `agent_brief` first. Use raw fields only to verify evidence.
+3. Read `references/claude-code-local-risk.md`.
+
+### Step 3 — Local configuration inspection (after Consent Gate)
+
+4. Pass the Consent Gate before reading `.claude` files, session transcripts, or Claude-related environment variable values.
+5. Inspect Claude Code settings/session traces listed in `agent_brief.manual_agent_checks` (and any standard paths like `~/.claude/settings.json`).
+
+### Step 4 — Report
+
+6. Produce a concise report following the Output Shape below.
 
 ## Interpretation Rules
 

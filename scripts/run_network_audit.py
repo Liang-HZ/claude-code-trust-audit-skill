@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import pathlib
 import shutil
 import subprocess
@@ -80,38 +79,27 @@ def ensure_repo(dest: pathlib.Path, repo_url: str, zip_url: str, no_update: bool
     }
 
 
-def latest_json(output_dir: pathlib.Path) -> pathlib.Path:
-    candidates = sorted(output_dir.glob("audit-*.json"), key=lambda path: path.stat().st_mtime)
-    if not candidates:
-        raise RuntimeError(f"no audit JSON found in {output_dir}")
-    return candidates[-1]
+def print_user_instructions(repo_dir: pathlib.Path) -> None:
+    """Print copy-paste command for the user to run in their own Terminal."""
+    collector_script = repo_dir / "network_audit.py"
+    output_dir = repo_dir / "reports" / "agent-skill"
+    user_cmd = f"python3 {collector_script} --output-dir {output_dir} --no-open"
 
-
-def run_audit(repo_path: pathlib.Path, args: argparse.Namespace) -> dict[str, object]:
-    output_dir = repo_path / "reports" / "agent-skill"
-    command = [
-        sys.executable,
-        str(repo_path / "network_audit.py"),
-        "--output-dir",
-        str(output_dir),
-        "--no-open",
-    ]
-    if args.skip_network:
-        command.append("--skip-network")
-    if args.skip_browser_probe:
-        command.append("--skip-browser-probe")
-    if args.default_browser_tracking_probe:
-        command.append("--default-browser-tracking-probe")
-    result = run_command(command, cwd=repo_path, timeout=args.timeout)
-    if result["code"] != 0:
-        raise RuntimeError(result["stderr"] or result["stdout"] or f"audit failed with code {result['code']}")
-    json_path = latest_json(output_dir)
-    return {
-        "command": command,
-        "json_path": str(json_path),
-        "stdout": str(result["stdout"])[-4000:],
-        "stderr": str(result["stderr"])[-4000:],
-    }
+    print(
+        f"\n✅ 采集器仓库已下载完成，路径：{repo_dir}\n"
+        f"\n"
+        f"──────────────────────────────────────────────────────────\n"
+        f"  请在 Claude Code 之外，打开一个新的终端窗口，粘贴\n"
+        f"  下面这一行命令，按回车执行：\n"
+        f"──────────────────────────────────────────────────────────\n"
+        f"\n"
+        f"  {user_cmd}\n"
+        f"\n"
+        f"──────────────────────────────────────────────────────────\n"
+        f"\n"
+        f"⏱  采集大约需要 1 分钟。执行完毕后，回到这个 Claude Code\n"
+        f"   会话，告诉我「跑完了」，我会为你解读结果。\n"
+    )
 
 
 def main() -> int:
@@ -131,9 +119,8 @@ def main() -> int:
     parsed = parser.parse_args()
 
     dest = pathlib.Path(parsed.dest).expanduser()
-    repo = ensure_repo(dest, parsed.repo_url, parsed.zip_url, parsed.no_update)
-    audit = run_audit(dest, parsed)
-    print(json.dumps({"repo": repo, "audit": audit}, ensure_ascii=False, indent=2))
+    ensure_repo(dest, parsed.repo_url, parsed.zip_url, parsed.no_update)
+    print_user_instructions(dest)
     return 0
 
 
